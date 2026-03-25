@@ -1,0 +1,363 @@
+/* ── Reset ──────────────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* ── Base ───────────────────────────────────────────────────────────────── */
+body {
+  background: #0a0a0a;
+  font-family: 'Courier New', Courier, monospace;
+  color: #5cba60;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ── Layout wrapper ─────────────────────────────────────────────────────── */
+.app-shell {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 18px 14px 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* ── Header ─────────────────────────────────────────────────────────────── */
+.app-header {
+  text-align: center;
+  padding: 12px 0 8px;
+  border-bottom: 1px solid #1e3a1e;
+}
+
+.app-title {
+  font-size: clamp(20px, 4vw, 28px);
+  letter-spacing: 8px;
+  font-weight: 700;
+  color: #4CAF50;
+  text-shadow: 0 0 20px rgba(76,175,80,.6), 0 0 40px rgba(76,175,80,.2);
+}
+
+.app-subtitle {
+  margin-top: 6px;
+  font-size: 12px;
+  letter-spacing: 3px;
+  color: #4a8a4c;
+  text-transform: uppercase;
+}
+
+/* ── Section label (reused) ─────────────────────────────────────────────── */
+.section-label {
+  font-size: 10px;
+  letter-spacing: 4px;
+  color: #4a8a4c;
+  text-transform: uppercase;
+}
+
+/* ── Scenario selector ──────────────────────────────────────────────────── */
+.scenario-section { display: flex; flex-direction: column; gap: 10px; }
+
+.scenario-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 6px;
+}
+
+.scenario-card {
+  --accent: #4CAF50;
+  background: #111411;
+  border: 1px solid #1e3a1e;
+  border-top: 3px solid var(--accent);
+  border-radius: 3px;
+  padding: 10px 6px 9px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  transition: background 0.12s, box-shadow 0.12s;
+  user-select: none;
+}
+
+.scenario-card:hover {
+  background: #1a241a;
+  box-shadow: 0 0 8px rgba(76,175,80,.2);
+}
+
+.scenario-card.active {
+  background: #162016;
+  border-top-color: var(--accent);
+  border-left-color: var(--accent);
+  border-right-color: var(--accent);
+  box-shadow: 0 0 12px rgba(76,175,80,.3), inset 0 0 8px rgba(76,175,80,.05);
+}
+
+.sc-code {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  color: var(--accent);
+  font-family: 'Courier New', monospace;
+  line-height: 1;
+}
+
+.sc-name {
+  font-size: 10px;
+  font-weight: 700;
+  color: #c0c0c0;
+  text-align: center;
+  line-height: 1.3;
+}
+
+.sc-sub {
+  font-size: 9px;
+  color: #5a7a5c;
+  text-align: center;
+}
+
+.scenario-desc {
+  font-size: 12px;
+  color: #7abd7e;
+  min-height: 2.4em;
+  line-height: 1.6;
+  padding: 8px 10px;
+  background: #0e130e;
+  border: 1px solid #1e3a1e;
+  border-left: 3px solid #2a6a2a;
+}
+
+/* ── Main layout ────────────────────────────────────────────────────────── */
+.sim-layout {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+}
+
+/* ── Left panel: canvas + graph ─────────────────────────────────────────── */
+.sim-left {
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  border: 1px solid #1e3a1e;
+}
+
+#phaserContainer {
+  width: 560px;
+  height: 400px;
+  display: block;
+  overflow: hidden;
+  background: #000;
+}
+
+#phaserContainer canvas {
+  display: block;
+}
+
+#myChart {
+  width: 560px;
+  height: 240px;
+  border-top: 1px solid #1e3a1e;
+  background: #000;
+}
+
+/* ── Right panel: stats + controls ─────────────────────────────────────── */
+.sim-right {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 644px;
+  overflow-y: auto;
+}
+
+/* ── Stats dashboard ────────────────────────────────────────────────────── */
+.stats-panel {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6px;
+}
+
+.stat-item {
+  background: #0e130e;
+  border: 1px solid #1e3a1e;
+  border-radius: 3px;
+  padding: 10px 4px 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+}
+
+.stat-value {
+  font-size: 20px;
+  font-weight: 700;
+  color: #4CAF50;
+  letter-spacing: 1px;
+  line-height: 1;
+}
+
+.stat-label {
+  font-size: 9px;
+  letter-spacing: 2px;
+  color: #5a8a5c;
+  text-transform: uppercase;
+}
+
+.stat-item.infected-stat .stat-value { color: #e84545; }
+.stat-item.dead-stat     .stat-value { color: #909090; }
+
+/* ── Controls panel ─────────────────────────────────────────────────────── */
+.controls-panel {
+  background: #0e130e;
+  border: 1px solid #1e3a1e;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+}
+
+.group-label {
+  font-size: 10px;
+  letter-spacing: 3px;
+  color: #4a8a4c;
+  text-transform: uppercase;
+  padding-bottom: 6px;
+  border-bottom: 1px solid #1e3a1e;
+  margin-bottom: 1px;
+}
+
+.divider {
+  border: none;
+  border-top: 1px solid #1a2e1a;
+  margin: 2px 0;
+}
+
+.control-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.control-row label {
+  display: flex;
+  flex-direction: column;
+  width: 138px;
+  flex-shrink: 0;
+  font-size: 12px;
+  color: #5cba60;
+  line-height: 1.3;
+}
+
+.hint {
+  font-size: 10px;
+  color: #4a7a4c;
+  font-style: italic;
+}
+
+/* Slider track */
+.slider {
+  -webkit-appearance: none;
+  appearance: none;
+  flex: 1;
+  height: 4px;
+  background: #1a2e1a;
+  outline: none;
+  border-radius: 2px;
+  cursor: pointer;
+}
+
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 15px;
+  height: 15px;
+  background: #4CAF50;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: background 0.12s;
+}
+
+.slider::-webkit-slider-thumb:hover { background: #66bb6a; }
+
+.slider::-moz-range-thumb {
+  width: 15px; height: 15px;
+  background: #4CAF50; border-radius: 2px; border: none; cursor: pointer;
+}
+
+.value {
+  width: 32px;
+  flex-shrink: 0;
+  text-align: right;
+  font-size: 12px;
+  font-weight: 700;
+  color: #4CAF50;
+}
+
+/* ── Legend ─────────────────────────────────────────────────────────────── */
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  font-size: 11px;
+  color: #7abd7e;
+  letter-spacing: 0.5px;
+  padding: 2px 0;
+}
+
+.dot {
+  display: inline-block;
+  width: 9px; height: 9px;
+  border-radius: 50%;
+  margin-right: 5px;
+  vertical-align: middle;
+}
+
+.d-healthy   { background: #4CAF50; }
+.d-vacc      { background: #4488ff; }
+.d-infected  { background: #e84545; }
+.d-asymp     { background: #ddaa00; }
+.d-recovered { background: #00ddaa; }
+.d-dead      { background: #666666; }
+
+/* ── Simulate button ────────────────────────────────────────────────────── */
+#sim {
+  padding: 14px 0;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 5px;
+  text-transform: uppercase;
+  color: #4CAF50;
+  background: transparent;
+  border: 1px solid #4CAF50;
+  border-radius: 2px;
+  cursor: pointer;
+  width: 100%;
+  transition: color 0.12s, background-color 0.12s;
+}
+
+#sim:hover  { color: #000; background-color: #4CAF50; }
+#sim:active { background-color: #66bb6a; }
+
+/* ── Scrollbar ──────────────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: #0a0a0a; }
+::-webkit-scrollbar-thumb { background: #1e3a1e; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #2e5a2e; }
+
+/* ── Responsive ─────────────────────────────────────────────────────────── */
+@media (max-width: 900px) {
+  .scenario-grid { grid-template-columns: repeat(4, 1fr); }
+
+  .sim-layout { flex-direction: column; align-items: stretch; }
+
+  .sim-left   { width: 100%; }
+  #phaserContainer { width: 100%; height: 320px; }
+  #myChart    { width: 100%; height: 220px; }
+
+  .sim-right  { max-height: none; }
+}
+
+@media (max-width: 560px) {
+  .scenario-grid { grid-template-columns: repeat(3, 1fr); }
+  .stats-panel   { grid-template-columns: repeat(3, 1fr); }
+  .stat-value    { font-size: 16px; }
+  .app-title     { letter-spacing: 4px; }
+}

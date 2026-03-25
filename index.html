@@ -1,33 +1,228 @@
-<!DOCTYPE html>
-<html>
+<!doctype html>
+<html lang="en">
     <head>
-       <link rel = "stylesheet" href="style.css">
-        <title>Virus Simulator</title>
-        <script type="text/javascript" src="input.js"></script>
-        <script type="text/javascript" src="plotly.js"></script>
-        <script type="text/javascript" src="phaser.min.js"></script>
-        <script type="text/javascript" src="visual.js"></script>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Epidemic Simulator</title>
+        <link rel="stylesheet" href="css/style.css" />
+        <!-- Libraries -->
+        <script src="js/plotly.js"></script>
+        <script src="js/phaser.min.js"></script>
+        <!-- App (order matters: scenarios → input → graph → simulation) -->
+        <script src="js/scenarios.js"></script>
+        <script src="js/input.js"></script>
+        <script src="js/graph.js"></script>
+        <script src="js/simulation.js"></script>
     </head>
     <body>
-    <div id= "Vcontainer">
-    <div id = "phaserContainer"></div>
-    <div id="myChart"></div>
-    <div id="Tcontainer">
-     <div class="slidecontainer">
-  <p>Population: <input type="range" min="0" max="500" value="100" class="slider" id="population"></p><br>
-  <p>Infected:<input type="range" min="0" max="3" value="1" class="slider" id="infected"> </p><br>
-  <p>Infection Rate:<input type="range" min="0" max="100" value="50" class="slider" id="infectionRate"></p><br>
-  <p>Death Rate:<input type="range" min="0" max="100" value="50" class="slider" id="deathRate"></p><br>
-  <p>Precautions:<input type="range" min="0" max="10" value="5" class="slider" id="pPrecaution"></p><br>
-</div>
-</div>
-<p class ="value_r"><div class="value" id="popu"></div></p><br>
-<p class ="value_r"><div class="value" id="infd"></div></p><br>
-<p class ="value_r"><div class="value" id="infr"></div></p><br>
-<p class ="value_r"><div class="value" id="der"></div></p><br>
-<p class ="value_r"><div class="value" id="pre"></div></p><br>
-<p class ="value_r"><div class="value" id="sim"onClick=simulate()>SIMULATE</div></p><br>
-</div>
+        <div class="app-shell">
+            <!-- ── Header ─────────────────────────────────────────────────────────── -->
+            <header class="app-header">
+                <h1 class="app-title">EPIDEMIC SIMULATOR</h1>
+                <p class="app-subtitle">
+                    Visualize disease dynamics in real time
+                </p>
+            </header>
 
+            <!-- ── Scenario selector ──────────────────────────────────────────────── -->
+            <section class="scenario-section">
+                <span class="section-label">Select Simulation</span>
+                <div class="scenario-grid" id="scenarioGrid"></div>
+                <p class="scenario-desc" id="scenarioDesc"></p>
+            </section>
+
+            <!-- ── Main content ───────────────────────────────────────────────────── -->
+            <div class="sim-layout">
+                <!-- Left: canvas + live graph -->
+                <div class="sim-left" id="simPanel">
+                    <div id="phaserContainer"></div>
+                    <div id="myChart"></div>
+                </div>
+
+                <!-- Right: stats + controls + button -->
+                <div class="sim-right">
+                    <!-- Stats dashboard -->
+                    <div class="stats-panel">
+                        <div class="stat-item">
+                            <span class="stat-value" id="statDay">0</span>
+                            <span class="stat-label">Day</span>
+                        </div>
+                        <div class="stat-item infected-stat">
+                            <span class="stat-value" id="statInfected">0</span>
+                            <span class="stat-label">Infected</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value" id="statPeak">0</span>
+                            <span class="stat-label">Peak</span>
+                        </div>
+                        <div class="stat-item dead-stat">
+                            <span class="stat-value" id="statDeaths">0</span>
+                            <span class="stat-label">Deaths</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value" id="statR0">—</span>
+                            <span class="stat-label">Est. R₀</span>
+                        </div>
+                    </div>
+
+                    <!-- Parameter controls -->
+                    <div class="controls-panel">
+                        <span class="section-label">Parameters</span>
+
+                        <h4 class="group-label">Population</h4>
+
+                        <div class="control-row">
+                            <label for="population">Population</label>
+                            <input
+                                type="range"
+                                id="population"
+                                class="slider"
+                                min="10"
+                                max="350"
+                                value="150"
+                            />
+                            <span class="value" id="popu">150</span>
+                        </div>
+
+                        <div class="control-row">
+                            <label for="infected">Initial Infected</label>
+                            <input
+                                type="range"
+                                id="infected"
+                                class="slider"
+                                min="1"
+                                max="20"
+                                value="3"
+                            />
+                            <span class="value" id="infd">3</span>
+                        </div>
+
+                        <hr class="divider" />
+                        <h4 class="group-label">Transmission</h4>
+
+                        <div class="control-row">
+                            <label for="infectionRate">Infection Rate</label>
+                            <input
+                                type="range"
+                                id="infectionRate"
+                                class="slider"
+                                min="0"
+                                max="100"
+                                value="50"
+                            />
+                            <span class="value" id="infr">50</span>
+                        </div>
+
+                        <div class="control-row">
+                            <label for="pPrecaution">
+                                Precautions
+                                <span class="hint">reduces spread</span>
+                            </label>
+                            <input
+                                type="range"
+                                id="pPrecaution"
+                                class="slider"
+                                min="0"
+                                max="10"
+                                value="3"
+                            />
+                            <span class="value" id="pre">3</span>
+                        </div>
+
+                        <div class="control-row">
+                            <label for="vaccinationRate">
+                                Vaccination %
+                                <span class="hint">start immune</span>
+                            </label>
+                            <input
+                                type="range"
+                                id="vaccinationRate"
+                                class="slider"
+                                min="0"
+                                max="100"
+                                value="0"
+                            />
+                            <span class="value" id="vacc">0</span>
+                        </div>
+
+                        <div class="control-row">
+                            <label for="quarantineThreshold">
+                                Quarantine at %
+                                <span class="hint">auto-slows movement</span>
+                            </label>
+                            <input
+                                type="range"
+                                id="quarantineThreshold"
+                                class="slider"
+                                min="0"
+                                max="100"
+                                value="70"
+                            />
+                            <span class="value" id="quar">70</span>
+                        </div>
+
+                        <hr class="divider" />
+                        <h4 class="group-label">Outcomes</h4>
+
+                        <div class="control-row">
+                            <label for="recoveryRate">
+                                Recovery Rate
+                                <span class="hint">higher = faster</span>
+                            </label>
+                            <input
+                                type="range"
+                                id="recoveryRate"
+                                class="slider"
+                                min="0"
+                                max="100"
+                                value="40"
+                            />
+                            <span class="value" id="recov">40</span>
+                        </div>
+
+                        <div class="control-row">
+                            <label for="deathRate">Death Rate</label>
+                            <input
+                                type="range"
+                                id="deathRate"
+                                class="slider"
+                                min="0"
+                                max="100"
+                                value="20"
+                            />
+                            <span class="value" id="der">20</span>
+                        </div>
+                    </div>
+                    <!-- .controls-panel -->
+
+                    <!-- Legend -->
+                    <div class="legend">
+                        <span
+                            ><span class="dot d-healthy"></span
+                            >Susceptible</span
+                        >
+                        <span><span class="dot d-vacc"></span>Vaccinated</span>
+                        <span
+                            ><span class="dot d-infected"></span>Infected</span
+                        >
+                        <span
+                            ><span class="dot d-asymp"></span>Asymptomatic</span
+                        >
+                        <span
+                            ><span class="dot d-recovered"></span
+                            >Recovered</span
+                        >
+                        <span><span class="dot d-dead"></span>Dead</span>
+                    </div>
+
+                    <button id="sim" onclick="simulate()">
+                        ▶ RUN SIMULATION
+                    </button>
+                </div>
+                <!-- .sim-right -->
+            </div>
+            <!-- .sim-layout -->
+        </div>
+        <!-- .app-shell -->
     </body>
 </html>
